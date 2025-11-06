@@ -107,3 +107,125 @@ typedef struct {
 
 
 ## Storage.c
+### Funções Principais
+- `int save_contacts(const char *filename, Contact *contacts, int count);`
+    - Salva a lista de contatos em um arquivo binário.
+    - Abre o arquivo em modo de escrita binária ("wb").
+    - Escreve o número de contatos seguido pelos dados dos contatos no arquivo.
+    - Fecha o arquivo e retorna 0 em caso de sucesso ou -1 em caso de erro.
+    ```c
+    int save_contacts(const char *filename, const Contact *list, size_t count) {
+        FILE *file = fopen(filename, "wb"); 
+        if (file == NULL) {
+            perror("Erro ao abrir arquivo para escrita");
+            return -1; 
+        }
+
+        size_t items_written = fwrite(list, sizeof(Contact), count, file);
+        fclose(file);
+
+        if (items_written != count) {
+            fprintf(stderr, "Erro: nem todos os contatos foram salvos.\n");
+            return -1;
+        }
+
+        return 0; 
+    }
+    ```
+- `int load_contacts(const char *filename, Contact **contacts, int *count);`
+    - Carrega a lista de contatos de um arquivo binário.
+    - Trata o caso em que o arquivo não existe, retornando uma lista vazia.
+    - Abre o arquivo em modo de leitura binária ("rb").
+    - Lê o número de contatos e aloca memória para armazená-los.
+    - Trata erros de leitura do arquivo.
+    - Verifica se o arquivo está corrompido.
+    - Aloca memoria utilizando malloc.
+    - Trata erros de alocação de memória.
+    - Atualiza os ponteiros originais da main.c.
+    ```c
+    int load_contacts(const char *filename, Contact **list_ptr, size_t *count_ptr) {
+        FILE *file = fopen(filename, "rb");
+
+        if (file == NULL) {
+            *list_ptr = NULL;
+            *count_ptr = 0;
+            return 0;
+        }
+
+        fseek(file, 0, SEEK_END);
+        long file_size = ftell(file);
+        rewind(file);
+
+        if (file_size == 0) {
+            *list_ptr = NULL;
+            *count_ptr = 0;
+            fclose(file);
+            return 0;
+        }
+        
+        if (file_size % sizeof(Contact) != 0) {
+            fprintf(stderr, "Erro: Arquivo de dados corrompido.\n");
+            fclose(file);
+            return -1;
+        }
+
+        size_t num_contacts = file_size / sizeof(Contact);
+
+        Contact *temp_list = (Contact *)malloc(file_size);
+
+        if (temp_list == NULL) {
+            fprintf(stderr, "Erro: Falha ao alocar memória para carregar contatos.\n");
+            fclose(file);
+            return -1;
+        }
+
+        size_t items_read = fread(temp_list, sizeof(Contact), num_contacts, file);
+
+        if (items_read != num_contacts) {
+            fprintf(stderr, "Erro: Falha ao ler dados do arquivo.\n");
+            fclose(file);
+            free(temp_list);
+            return -1;
+        }
+
+        fclose(file);
+
+        *list_ptr = temp_list;
+        *count_ptr = num_contacts;
+
+        return 0;
+    }
+    ```
+
+## Utils.c
+### Funções Principais
+- `int validate_email(const char *email);`
+    - Utiliza fgets para ler a entrada do usuário, limitando o número de caracteres lidos para evitar estouro de buffer.
+    ```c
+    int read_safe_string(char *buffer, int size) {
+    
+        if (fgets(buffer, size, stdin) != NULL) {
+            // Remove o '\n' (quebra de linha) do final, se fgets o capturou
+            buffer[strcspn(buffer, "\n")] = '\0';
+            return 0; // Sucesso
+        }
+        return -1; // Erro ou EOF
+    }
+    ```
+
+# Bibliotecas utilizadas:
+- `stdio.h`: Para operações de entrada e saída, como printf, scanf, fopen, fread, fwrite, fclose.
+- `stdint.h`: Para tipos de dados inteiros com tamanhos específicos, como uint8_t.
+- `string.h`: Para manipulação de strings, como strcmp, strcpy, strlen, strcspn.
+- `stdlib.h`: Para funções de alocação de memória dinâmica, como malloc, realloc
+
+### Libs locais
+- `contacts.h`: Declarações das funções e estruturas relacionadas aos contatos.
+- `storage.h`: Declarações das funções relacionadas ao armazenamento de contatos.
+- `utils.h`: Declarações das funções utilitárias usadas em todo o projeto.
+
+## Autor
+- Emanuel Sales
+- Ryan França
+- Gabriel Victor
+
