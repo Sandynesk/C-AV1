@@ -24,7 +24,7 @@ int save_contacts(const char *filename, const Contact *list, size_t count);
  * @return 0 se sucesso, -1 se ocorrer algum erro (ex: arquivo não existe).
  */
 int load_contacts(const char *filename, Contact **list_ptr, size_t *count_ptr);
+int export_contacts(const char *filename, const Contact *list, size_t count);
 
-// (Outras funções, como load_contacts, virão aqui)
 
 #endif // STORAGE_H

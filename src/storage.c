@@ -108,3 +108,35 @@ int load_contacts(const char *filename, Contact **list_ptr, size_t *count_ptr) {
 
     return 0; // Sucesso!
 }
+
+int export_contacts(const char *filename, const Contact *list, size_t count) {
+    // 1. Abrir o arquivo no modo "w" (escrita de texto)
+    FILE *file = fopen(filename, "w"); 
+    
+    if (file == NULL) {
+        perror("Erro ao abrir arquivo para exportação");
+        return -1;
+    }
+
+    // 2. Escrever o cabeçalho CSV (opcional, mas recomendado)
+    fprintf(file, "ID,Nome,Email,Idade\n");
+
+    // 3. Iterar sobre todos os contatos
+    for (size_t i = 0; i < count; i++) {
+        // 4. Escrever cada contato no formato CSV
+        // Os dados são separados por vírgulas
+        fprintf(
+            file, 
+            "%u,%s,%s,%u\n", 
+            list[i].id, 
+            list[i].name, 
+            list[i].email, 
+            list[i].age
+        );
+    }
+
+    // 5. Fechar o arquivo
+    fclose(file); 
+
+    return 0;
+}

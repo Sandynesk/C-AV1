@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
                 uint32_t id_to_remove = (uint32_t)atoi(argv[2]);
                 printf("--- Apagando contato ---\n");
                 int resultado = remover_contato(&list, &count, id_to_remove);
-                
+
                 if (resultado == 0)
                 {
                     if (save_contacts(DB_FILE, list, count) != 0)
@@ -114,6 +114,39 @@ int main(int argc, char *argv[])
                 else
                 {
                     printf("Erro: ID %u não encontrado.\n", id_to_remove);
+                }
+            }
+        }
+        else if (strcmp(argv[1], "export") == 0)
+        {
+            // Espera pelo menos: ./simcon export csv arquivo.csv (argc = 4)
+            if (argc < 4)
+            {
+                fprintf(stderr, "Uso: ./simcon export <formato: csv/texto> <nome_do_arquivo>\n");
+            }
+            else
+            {
+                const char *formato = argv[2];  // Ex: "csv"
+                const char *filename = argv[3]; // Ex: "contatos.csv"
+
+                // Simplesmente verifica se o formato é "csv" (ou se aceita qualquer texto)
+                if (strcmp(formato, "csv") == 0 || strcmp(formato, "texto") == 0)
+                {
+                    printf("--- Exportando contatos para %s ---\n", filename);
+
+                    // Chama a função export com o nome do arquivo, lista e contagem
+                    if (export_contacts(filename, list, count) == 0)
+                    {
+                        printf("Exportação concluída com sucesso.\n");
+                    }
+                    else
+                    {
+                        fprintf(stderr, "Falha na exportação. Verifique as permissões de escrita.\n");
+                    }
+                }
+                else
+                {
+                    fprintf(stderr, "Formato de exportação '%s' não suportado.\n", formato);
                 }
             }
         }
