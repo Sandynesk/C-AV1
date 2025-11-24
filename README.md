@@ -39,9 +39,10 @@ O arquivo `utils.c` contém funções utilitárias que são usadas em todo o pro
 A struct Contact é definida da seguinte forma:
 ```c
 typedef struct {
-    char name[50];
-    char phone[15];
-    char email[50];
+    uint32_t id;      
+    char name[NAME_MAX];    
+    char email[EMAIL_MAX];  
+    uint8_t age;      
 } Contact;
 ```
 ### Funções Principais
@@ -104,8 +105,67 @@ typedef struct {
     }
     ```
 
+- `void find_contacts(const Contact *list, size_t count, const char *term);`
+    - Busca contatos na lista cujos nomes contenham o termo de busca fornecido.
+    - Itera sobre a lista de contatos e utiliza strstr (da string.h) para encontrar correspondências dentro do campo name.  
+    - Imprime os detalhes dos contatos encontrados ou uma mensagem se nenhum for localizado.
+    ```c
+    void find_contacts(const Contact *list, size_t count, const char *term)
+    {
+        int found = 0;
+        for (size_t i = 0; i < count; i++)
+        {
+            if (strstr(list[i].name, term) != NULL)
+            {
+                printf("  ID: %u\n", list[i].id);
+                printf("  Nome: %s\n", list[i].name);
+                printf("  Email: %s\n", list[i].email);
+                printf("  Idade: %u\n", list[i].age);
+                printf("  --------------------\n");
+                found = 1;
+            }
+        }
 
+        if (found == 0)
+        {
+            printf("Nenhum contato encontrado.\n");
+        }
+    }
+    ```
+-   `int remover_contato(Contact **list_ptr, size_t *count_ptr, uint32_t id_to_remove);`
+    - Remove um contato da lista com base no seu id.
+    - Após encontrar o ID, utiliza memmove para deslocar os elementos subsequentes, preenchendo o espaço do contato removido.
+    - Decrementa a contagem de contatos e usa realloc para diminuir o bloco de memória alocado. 
+    - Retorna 0 em caso de sucesso e -1 se o ID não for encontrado ou se houver falha na realocação de memória.
+     ```c
+        int remover_contato(Contact **list_ptr, size_t *count_ptr, uint32_t id_to_remove)
+        {
+            Contact *list = *list_ptr;
+            
+            for (size_t i = 0; i < *count_ptr; i++)
+            {
+                if ((*list_ptr)[i].id == id_to_remove )
+                {
+                    size_t elementos_mover = (*count_ptr - 1) - i;
+                    size_t bytes_mover = elementos_mover * sizeof(Contact);
+                    memmove(&(*list_ptr)[i], &(*list_ptr)[i + 1], bytes_mover);
 
+                    *count_ptr -= 1;
+                    Contact *new_list = (Contact *)realloc(*list_ptr, (*count_ptr) * sizeof(Contact));
+
+                    if (new_list == NULL)
+                    {
+                        fprintf(stderr, "Erro: Falha ao reduzir memória.\n");
+                        return -1; 
+                    }
+                    *list_ptr = new_list;
+                    return 0;
+                }
+            }
+            printf("Erro: ID não encontrado.");
+            return -1;
+        }
+     ```
 ## Storage.c
 ### Funções Principais
 - `int save_contacts(const char *filename, Contact *contacts, int count);`
@@ -196,6 +256,46 @@ typedef struct {
         return 0;
     }
     ```
+-    `int export_contacts(const char *filename, const Contact *list, size_t count);`
+    - Exporta a lista de contatos para um arquivo de texto no formato CSV.
+    - Abre o arquivo no modo de escrita de texto ("w").
+    - Escreve um cabeçalho CSV (ID,Nome,Email,Idade).
+    - Itera sobre a lista e usa fprintf para escrever os dados de cada contato no formato separado por vírgula.
+    - Retorna 0 em caso de sucesso ou -1 em caso de erro ao abrir o arquivo.
+     ```c
+        int export_contacts(const char *filename, const Contact *list, size_t count) 
+        {
+            // 1. Abrir o arquivo no modo "w" (escrita de texto)
+            FILE *file = fopen(filename, "w"); 
+            
+            if (file == NULL) {
+                perror("Erro ao abrir arquivo para exportação");
+                return -1;
+            }
+
+            // 2. Escrever o cabeçalho CSV (opcional, mas recomendado)
+            fprintf(file, "ID,Nome,Email,Idade\n");
+
+            // 3. Iterar sobre todos os contatos
+            for (size_t i = 0; i < count; i++) {
+                // 4. Escrever cada contato no formato CSV
+                // Os dados são separados por vírgulas
+                fprintf(
+                    file, 
+                    "%u,%s,%s,%u\n", 
+                    list[i].id, 
+                    list[i].name, 
+                    list[i].email, 
+                    list[i].age
+                );
+            }
+
+            // 5. Fechar o arquivo
+            fclose(file); 
+
+            return 0;
+        }
+     ```
 
 ## Utils.c
 ### Funções Principais
