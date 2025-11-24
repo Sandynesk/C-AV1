@@ -34,5 +34,7 @@ int add_contact(Contact **list_ptr, size_t *count_ptr, Contact *new_contact);
  */
 int cmp_by_name(const void *a, const void *b);
 
+void find_contacts(const Contact *list, size_t count, const char *term);
+
 
 #endif // CONTACT_H

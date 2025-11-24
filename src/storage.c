@@ -1,4 +1,4 @@
-#include "storage.h"  
+  #include "storage.h"  
 #include <stdio.h>      // Para fopen, fwrite, fclose, perror
 #include <stdlib.h>     // Para malloc, free, NULL
 
