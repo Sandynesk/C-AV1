@@ -1,8 +1,8 @@
 
 #include "contact.h"
 #include <stdio.h>
-#include <stdlib.h> // Para realloc
-#include <string.h> // Para strcmp e memcpy e strstr
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * @brief Implementação de list_contacts
@@ -36,7 +36,7 @@ int add_contact(Contact **list_ptr, size_t *count_ptr, Contact *new_contact)
     // 1. Calcula o novo tamanho da lista
     size_t new_count = *count_ptr + 1;
 
-    // 2. Tenta realocar a memória para o novo tamanho [cite: 9]
+    // 2. Tenta realocar a memória para o novo tamanho
     // realloc lida com o caso de *list_ptr ser NULL (se for o 1º contato)
     Contact *new_list = (Contact *)realloc(*list_ptr, new_count * sizeof(Contact));
 
@@ -77,18 +77,46 @@ void find_contacts(const Contact *list, size_t count, const char *term)
     for (size_t i = 0; i < count; i++)
     {
         if (strstr(list[i].name, term) != NULL)
+        {
+            printf("  ID: %u\n", list[i].id);
+            printf("  Nome: %s\n", list[i].name);
+            printf("  Email: %s\n", list[i].email);
+            printf("  Idade: %u\n", list[i].age);
+            printf("  --------------------\n");
+            found = 1;
+        }
+    }
+
+    if (found == 0)
     {
-        printf("  ID: %u\n", list[i].id);
-        printf("  Nome: %s\n", list[i].name);
-        printf("  Email: %s\n", list[i].email);
-        printf("  Idade: %u\n", list[i].age);
-        printf("  --------------------\n");
-        found =1;
-        
-    }
-    }
-    
-    if (found == 0) {
         printf("Nenhum contato encontrado.\n");
     }
+}
+
+int remover_contato(Contact **list_ptr, size_t *count_ptr, uint32_t id_to_remove)
+{
+    Contact *list = *list_ptr;
+    
+    for (size_t i = 0; i < *count_ptr; i++)
+    {
+        if ((*list_ptr)[i].id == id_to_remove )
+        {
+            size_t elementos_mover = (*count_ptr - 1) - i;
+            size_t bytes_mover = elementos_mover * sizeof(Contact);
+            memmove(&(*list_ptr)[i], &(*list_ptr)[i + 1], bytes_mover);
+
+            *count_ptr -= 1;
+            Contact *new_list = (Contact *)realloc(*list_ptr, (*count_ptr) * sizeof(Contact));
+
+            if (new_list == NULL)
+            {
+                fprintf(stderr, "Erro: Falha ao reduzir memória.\n");
+                return -1; 
+            }
+            *list_ptr = new_list;
+            return 0;
+        }
+    }
+    printf("Erro: ID não encontrado.");
+    return -1;
 }

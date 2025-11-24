@@ -1,19 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// Inclui nossos próprios módulos
 #include "contact.h"
 #include "storage.h"
-// #include "utils.h" // (Vamos precisar quando tiver o read_contact_interactive)
-
-// --- Funções de contact.c (que ainda vamos criar) ---
-// Precisamos declarar "stubs" ou protótipos aqui por enquanto
-// para o main.c saber que elas existem.
-void list_contacts(Contact *list, size_t count);
-int add_contact(Contact **list_ptr, size_t *count_ptr, Contact *new_contact);
-int cmp_by_name(const void *a, const void *b);
-// ---------------------------------------------------
+#include "utils.h"
 
 int main(int argc, char *argv[])
 {
@@ -32,11 +22,11 @@ int main(int argc, char *argv[])
     }
     printf("Carregados %lu contatos.\n", (unsigned long)count);
 
-    // 3. Analisa os argumentos da linha de comando [cite: 47]
+    // 3. Analisa os argumentos da linha de comando
     if (argc >= 2)
     {
 
-        // Comando: ./simcon list [cite: 53]
+        // Comando: ./simcon list
         if (strcmp(argv[1], "list") == 0)
         {
 
@@ -45,9 +35,9 @@ int main(int argc, char *argv[])
             // ------------------------------------
 
             printf("--- Lista de Contatos ---\n");
-            list_contacts(list, count); // [cite: 58]
+            list_contacts(list, count);
 
-            // Comando: ./simcon add [cite: 48]
+            // Comando: ./simcon add
         }
         else if (strcmp(argv[1], "add") == 0)
         {
@@ -97,6 +87,36 @@ int main(int argc, char *argv[])
                 find_contacts(list, count, search_term);
             }
         }
+
+        else if (strcmp(argv[1], "remove") == 0)
+        {
+            if (argc < 3)
+            {
+                fprintf(stderr, "Uso: ./simcon find <Id de remocao>\n");
+            }
+            else
+            {
+                uint32_t id_to_remove = (uint32_t)atoi(argv[2]);
+                printf("--- Apagando contato ---\n");
+                int resultado = remover_contato(&list, &count, id_to_remove);
+                
+                if (resultado == 0)
+                {
+                    if (save_contacts(DB_FILE, list, count) != 0)
+                    {
+                        fprintf(stderr, "Erro ao salvar contatos após remoção.\n");
+                    }
+                    else
+                    {
+                        printf("Contato removido com sucesso.\n");
+                    }
+                }
+                else
+                {
+                    printf("Erro: ID %u não encontrado.\n", id_to_remove);
+                }
+            }
+        }
         else
         {
 
@@ -106,16 +126,16 @@ int main(int argc, char *argv[])
         }
 
         free(list);
-        return 0;
-        }
-        else
-        {
-            printf("Bem-vindo ao SIMCON.\n");
-            printf("Uso: ./simcon <comando> [opcoes]\n");
-            printf("Comandos: add, list, find, remove, export\n");
-        }
-
-        free(list);
-
         return 0;
     }
+    else
+    {
+        printf("Bem-vindo ao SIMCON.\n");
+        printf("Uso: ./simcon <comando> [opcoes]\n");
+        printf("Comandos: add, list, find, remove, export\n");
+    }
+
+    free(list);
+
+    return 0;
+}

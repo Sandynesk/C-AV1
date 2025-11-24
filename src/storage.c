@@ -1,4 +1,4 @@
-  #include "storage.h"  
+#include "storage.h"  
 #include <stdio.h>      // Para fopen, fwrite, fclose, perror
 #include <stdlib.h>     // Para malloc, free, NULL
 
@@ -81,17 +81,17 @@ int load_contacts(const char *filename, Contact **list_ptr, size_t *count_ptr) {
     // Usamos malloc pois o documento sugere
     Contact *temp_list = (Contact *)malloc(file_size);
 
-    // 6. Tratar falha na alocação de memória [cite: 69]
+    // 6. Tratar falha na alocação de memória 
     if (temp_list == NULL) {
         fprintf(stderr, "Erro: Falha ao alocar memória para carregar contatos.\n");
         fclose(file);
         return -1;
     }
 
-    // 7. Ler todos os contatos do arquivo para a memória [cite: 8]
+    // 7. Ler todos os contatos do arquivo para a memória
     size_t items_read = fread(temp_list, sizeof(Contact), num_contacts, file);
 
-    // 8. Tratar erro de leitura [cite: 69]
+    // 8. Tratar erro de leitura
     if (items_read != num_contacts) {
         fprintf(stderr, "Erro: Falha ao ler dados do arquivo.\n");
         fclose(file);
